@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AI-Based Smart Bus Access and Fee Verification System for academic demonstration.">
+    <title>{% block title %}Smart Bus Access & Fee Verification{% endblock %}</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom Dark Glassmorphism CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    
+    {% if session.logged_in %}
+    <!-- Navigation Header -->
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-glass mb-4">
+        <div class="container-fluid">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="{{ url_for('dashboard') }}" id="brand-logo-link">
+                <span style="font-size: 24px;">🚌</span>
+                <span style="font-family: 'Outfit'; font-weight: 700; letter-spacing: 0.5px;">SMART<span style="color: var(--primary);">BUS</span></span>
+            </a>
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation" id="navbar-collapse-toggle">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto gap-1">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}" id="nav-dashboard">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'students' %}active{% endif %}" href="{{ url_for('students') }}" id="nav-students">Students</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'live' %}active{% endif %}" href="{{ url_for('live') }}" id="nav-live">Live HUD Stream</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'attendance' %}active{% endif %}" href="{{ url_for('attendance') }}" id="nav-attendance">Attendance Logs</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'alerts' %}active{% endif %}" href="{{ url_for('alerts') }}" id="nav-alerts">Alerts</a>
+                    </li>
+                    <li class="nav-item ms-lg-3 mt-2 mt-lg-0">
+                        <a class="btn btn-outline-danger btn-sm rounded-pill px-3" href="{{ url_for('logout') }}" id="btn-logout">Logout</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    {% endif %}
+
+    <div class="container pb-5">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="row justify-content-center">
+                    <div class="col-10 col-md-8">
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category if category != 'error' else 'danger' }} alert-dismissible fade show bg-opacity-10 text-{{ category if category != 'error' else 'danger' }} border-{{ category if category != 'error' else 'danger' }} glass-card mb-4" role="alert" style="padding: 16px 24px; border-radius: 12px;">
+                                <strong style="font-family: 'Outfit';">{{ category.upper() }}!</strong> {{ message }}
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- Main Page Content Block -->
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom Logic Script -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block title %}System Alerts - Smart Bus System{% endblock %}
+
+{% block content %}
+<div class="row mb-4 justify-content-between align-items-center">
+    <div class="col-12 col-md-8">
+        <h1 class="h2 text-light" style="font-family: 'Outfit'; font-weight: 700; margin-bottom: 5px;">SECURITY & ACCESS ALERTS</h1>
+        <p class="text-muted mb-0">List of denied boarding attempts, including unauthorized intruders and fee issues.</p>
+    </div>
+    <div class="col-12 col-md-4 text-md-end mt-3 mt-md-0">
+        {% if alerts %}
+            <form action="{{ url_for('clear_alerts') }}" method="POST" onsubmit="return confirm('Are you sure you want to permanently clear all alert logs?');" class="m-0">
+                <button type="submit" class="btn btn-glass-danger" id="btn-clear-alerts">
+                    🗑️ Clear All Alerts
+                </button>
+            </form>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="glass-card py-3 px-4 d-flex align-items-center gap-3">
+            <span style="font-size: 20px;">🔍</span>
+            <input type="text" class="form-control form-glass text-light border-0 ps-0 fs-5 w-100" id="table-search-input" placeholder="Search alerts by name, ID, message, or date...">
+        </div>
+    </div>
+</div>
+
+<!-- Alerts Table -->
+<div class="row">
+    <div class="col-12">
+        <div class="glass-card">
+            <div class="table-responsive">
+                <table class="table table-glass" id="table-filterable">
+                    <thead>
+                        <tr>
+                            <th>Alert ID</th>
+                            <th>Student ID</th>
+                            <th>Student Name</th>
+                            <th>Alert Message</th>
+                            <th>Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if alerts %}
+                            {% for alert, student in alerts %}
+                            <tr>
+                                <td class="text-muted font-monospace">#{{ alert.alert_id }}</td>
+                                <td class="fw-semibold text-light">{{ alert.student_id or 'UNKNOWN' }}</td>
+                                <td class="text-light">{{ student.name if student else 'Unknown Intruder' }}</td>
+                                <td>
+                                    <span class="d-flex align-items-center gap-2">
+                                        <span class="pulse-dot"></span>
+                                        <span class="{% if 'Unauthorized' in alert.alert_message %}text-danger fw-semibold{% else %}text-warning{% endif %}">
+                                            {{ alert.alert_message }}
+                                        </span>
+                                    </span>
+                                </td>
+                                <td class="text-muted">{{ alert.formatted_timestamp }}</td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-4">No active security alerts. System status is normal.</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

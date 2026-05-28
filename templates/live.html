@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block title %}Live Recognition - Smart Bus System{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12 col-md-8">
+        <h1 class="h2 text-light" style="font-family: 'Outfit'; font-weight: 700; margin-bottom: 5px;">LIVE RECOGNITION TERMINAL</h1>
+        <p class="text-muted mb-0">Webcam scanning hud for bus passenger boarding access check.</p>
+    </div>
+    <div class="col-12 col-md-4 text-md-end mt-2 mt-md-0">
+        <div class="d-inline-flex align-items-center gap-2 px-3 py-1.5 glass-card" style="border-radius: 30px; font-size: 0.9rem;">
+            <span class="pulse-dot-green"></span>
+            <span class="text-muted fw-medium">MODE: <span class="text-light">{{ camera_type.upper() }}</span></span>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4" id="live-feed-monitor">
+    <!-- Left Column: Video Capture HUD -->
+    <div class="col-12 col-lg-8">
+        <div class="glass-card p-3">
+            <div class="camera-container">
+                <!-- Live Video Feed Stream -->
+                <img class="camera-feed" src="{{ url_for('video_feed') }}" alt="Live Webcam HUD stream" id="camera-feed-element">
+                
+                <!-- HUD Overlays -->
+                <div class="camera-overlay">
+                    <span class="pulse-dot"></span>
+                    <span class="text-light fw-bold" style="font-size: 0.75rem; letter-spacing: 1px; font-family: 'Outfit';">BUS-FEED LIVE</span>
+                </div>
+            </div>
+            
+            <div class="d-flex justify-content-between align-items-center mt-3 px-1">
+                <span class="text-muted small">Terminal ID: <strong>TERM-BUS-12</strong></span>
+                <span class="text-muted small">Status: <strong class="text-success">Active & Monitoring</strong></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Boarding Simulation Panel -->
+    <div class="col-12 col-lg-4">
+        <div class="glass-card h-100 d-flex flex-column justify-content-between">
+            <div>
+                <h2 class="h5 text-light mb-1" style="font-family: 'Outfit';">Simulation Control Center</h2>
+                <p class="text-muted small mb-4">Use this panel to simulate face scans. This triggers face matching and database checks on the live terminal, which is ideal for presentations without a camera.</p>
+                
+                <div class="simulation-panel mb-4">
+                    <h3 class="h6 text-primary mb-3" style="font-family: 'Outfit'; font-weight: 700; letter-spacing: 0.5px;">SIMULATE BOARDING PASSENGER</h3>
+                    
+                    {% if students %}
+                        <div class="mb-3">
+                            <label for="simulation-select" class="form-label text-muted small fw-medium">SELECT PASSENGER PROFILE</label>
+                            <select class="form-select form-glass text-light bg-dark" id="simulation-select">
+                                <optgroup label="Registered Students">
+                                    {% for student in students %}
+                                        <option value="{{ student.student_id }}">
+                                            {{ student.name }} ({{ student.student_id }}) - Fee: {{ student.fee_status }}
+                                        </option>
+                                    {% endfor %}
+                                </optgroup>
+                                <optgroup label="Security Intruder">
+                                    <option value="unknown">Unauthorized / Unknown Person</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                        
+                        <button type="button" class="btn btn-glass-primary w-100 py-2" onclick="triggerSimulation(document.getElementById('simulation-select').value)" id="btn-trigger-simulation">
+                            📷 Simulate Scan
+                        </button>
+                    {% else %}
+                        <p class="text-muted small mb-0">No students registered yet. Please <a href="{{ url_for('students') }}">add students</a> with face data first to trigger simulations.</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="pt-3 border-top border-secondary">
+                <div class="d-flex align-items-center gap-3">
+                    <span style="font-size: 24px;">💡</span>
+                    <p class="text-muted small mb-0">
+                        When simulated, the screen highlights the mock face and checks access based on fee status. Logs are written to <a href="{{ url_for('attendance') }}">Attendance</a>.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,203 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Students - Smart Bus System{% endblock %}
+
+{% block content %}
+<div class="row mb-4 justify-content-between align-items-center">
+    <div class="col-12 col-md-6">
+        <h1 class="h2 text-light" style="font-family: 'Outfit'; font-weight: 700; margin-bottom: 5px;">STUDENT MANAGEMENT</h1>
+        <p class="text-muted mb-0">Add, edit, delete students and update fee status or register face models.</p>
+    </div>
+    <div class="col-12 col-md-4 text-md-end mt-3 mt-md-0">
+        <button class="btn btn-glass-primary" data-bs-toggle="modal" data-bs-target="#addStudentModal" id="btn-add-student-modal-trigger">
+            + Register Student
+        </button>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="glass-card py-3 px-4 d-flex align-items-center gap-3">
+            <span style="font-size: 20px;">🔍</span>
+            <input type="text" class="form-control form-glass text-light border-0 ps-0 fs-5 w-100" id="table-search-input" placeholder="Search student by name, ID, department, or bus...">
+        </div>
+    </div>
+</div>
+
+<!-- Students Table -->
+<div class="row">
+    <div class="col-12">
+        <div class="glass-card">
+            <div class="table-responsive">
+                <table class="table table-glass" id="table-filterable">
+                    <thead>
+                        <tr>
+                            <th>Photo</th>
+                            <th>Student ID</th>
+                            <th>Name</th>
+                            <th>Department</th>
+                            <th>Bus No</th>
+                            <th>Fee Status</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if students %}
+                            {% for student in students %}
+                            <tr>
+                                <td>
+                                    {% if student.photo_path %}
+                                        <img src="{{ url_for('static', filename=student.photo_path) }}" 
+                                             alt="{{ student.name }}" 
+                                             class="rounded-circle border" 
+                                             style="width: 48px; height: 48px; object-fit: cover; border-color: var(--border-color) !important;">
+                                    {% else %}
+                                        <div class="rounded-circle border d-flex align-items-center justify-content-center bg-secondary bg-opacity-20 text-muted" 
+                                             style="width: 48px; height: 48px; border-color: var(--border-color) !important; font-size: 20px;">
+                                            👤
+                                        </div>
+                                    {% endif %}
+                                </td>
+                                <td class="fw-semibold text-light">{{ student.student_id }}</td>
+                                <td class="text-light">{{ student.name }}</td>
+                                <td>{{ student.department or '-' }}</td>
+                                <td>{{ student.bus_no or '-' }}</td>
+                                <td>
+                                    <span class="status-pill {% if student.fee_status == 'Paid' %}status-paid{% else %}status-pending{% endif %}">
+                                        {{ student.fee_status }}
+                                    </span>
+                                </td>
+                                <td class="text-end">
+                                    <div class="d-inline-flex gap-2">
+                                        <!-- Edit Trigger -->
+                                        <button class="btn btn-sm btn-glass-secondary py-1 px-2.5" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#editStudentModal-{{ student.student_id }}"
+                                                id="btn-edit-student-{{ student.student_id }}">
+                                            Edit
+                                        </button>
+                                        <!-- Delete Trigger -->
+                                        <form action="{{ url_for('students') }}" method="POST" onsubmit="return confirm('Are you sure you want to delete student {{ student.name }}?');" class="m-0">
+                                            <input type="hidden" name="action" value="delete">
+                                            <input type="hidden" name="student_id" value="{{ student.student_id }}">
+                                            <button type="submit" class="btn btn-sm btn-glass-danger py-1 px-2.5" id="btn-delete-student-{{ student.student_id }}">
+                                                Delete
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <!-- Edit Student Modal -->
+                            <div class="modal fade" id="editStudentModal-{{ student.student_id }}" tabindex="-1" aria-labelledby="editStudentModalLabel-{{ student.student_id }}" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content glass-card p-0 shadow-lg border-secondary">
+                                        <div class="modal-header border-bottom border-secondary px-4 py-3">
+                                            <h5 class="modal-title text-light" id="editStudentModalLabel-{{ student.student_id }}">Edit Student Profile</h5>
+                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <form action="{{ url_for('students') }}" method="POST" enctype="multipart/form-data">
+                                            <input type="hidden" name="action" value="edit">
+                                            <input type="hidden" name="student_id" value="{{ student.student_id }}">
+                                            
+                                            <div class="modal-body px-4 py-4">
+                                                <div class="mb-3">
+                                                    <label class="form-label text-muted small fw-medium">STUDENT ID</label>
+                                                    <input type="text" class="form-control form-glass text-light" value="{{ student.student_id }}" disabled>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="edit-name-{{ student.student_id }}" class="form-label text-muted small fw-medium">NAME</label>
+                                                    <input type="text" class="form-control form-glass text-light" id="edit-name-{{ student.student_id }}" name="name" value="{{ student.name }}" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="edit-dept-{{ student.student_id }}" class="form-label text-muted small fw-medium">DEPARTMENT</label>
+                                                    <input type="text" class="form-control form-glass text-light" id="edit-dept-{{ student.student_id }}" name="department" value="{{ student.department }}">
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="edit-bus-{{ student.student_id }}" class="form-label text-muted small fw-medium">BUS NO</label>
+                                                    <input type="text" class="form-control form-glass text-light" id="edit-bus-{{ student.student_id }}" name="bus_no" value="{{ student.bus_no }}">
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="edit-fee-{{ student.student_id }}" class="form-label text-muted small fw-medium">BUS FEE PASS STATUS</label>
+                                                    <select class="form-select form-glass text-light bg-dark" id="edit-fee-{{ student.student_id }}" name="fee_status">
+                                                        <option value="Paid" {% if student.fee_status == 'Paid' %}selected{% endif %}>Paid (Access Allowed)</option>
+                                                        <option value="Pending" {% if student.fee_status == 'Pending' %}selected{% endif %}>Pending (Access Denied)</option>
+                                                    </select>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="edit-image-{{ student.student_id }}" class="form-label text-muted small fw-medium">UPDATE FACE IMAGE (OPTIONAL)</label>
+                                                    <input class="form-control form-glass text-light" type="file" id="edit-image-{{ student.student_id }}" name="face_image" accept="image/*">
+                                                    <small class="text-muted">Upload a clear photo containing a single face if you want to update face data.</small>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer border-top border-secondary px-4 py-3">
+                                                <button type="button" class="btn btn-glass-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <button type="submit" class="btn btn-glass-primary">Save Changes</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="7" class="text-center text-muted py-4">No registered student records found. Add students to scan faces.</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Student Modal -->
+<div class="modal fade" id="addStudentModal" tabindex="-1" aria-labelledby="addStudentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-card p-0 shadow-lg border-secondary">
+            <div class="modal-header border-bottom border-secondary px-4 py-3">
+                <h5 class="modal-title text-light" id="addStudentModalLabel">Register New Student</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ url_for('students') }}" method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="action" value="add">
+                
+                <div class="modal-body px-4 py-4">
+                    <div class="mb-3">
+                        <label for="add-id" class="form-label text-muted small fw-medium">STUDENT ID / REGISTER NO *</label>
+                        <input type="text" class="form-control form-glass text-light" id="add-id" name="student_id" placeholder="e.g., STU2026101" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="add-name" class="form-label text-muted small fw-medium">STUDENT FULL NAME *</label>
+                        <input type="text" class="form-control form-glass text-light" id="add-name" name="name" placeholder="Enter student name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="add-dept" class="form-label text-muted small fw-medium">DEPARTMENT</label>
+                        <input type="text" class="form-control form-glass text-light" id="add-dept" name="department" placeholder="e.g., Computer Science">
+                    </div>
+                    <div class="mb-3">
+                        <label for="add-bus" class="form-label text-muted small fw-medium">BUS ROUTE / BUS NO</label>
+                        <input type="text" class="form-control form-glass text-light" id="add-bus" name="bus_no" placeholder="e.g., Bus 10">
+                    </div>
+                    <div class="mb-3">
+                        <label for="add-fee" class="form-label text-muted small fw-medium">FEE PAYMENT STATUS *</label>
+                        <select class="form-select form-glass text-light bg-dark" id="add-fee" name="fee_status">
+                            <option value="Paid">Paid (Access Allowed)</option>
+                            <option value="Pending" selected>Pending (Access Denied)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="add-image" class="form-label text-muted small fw-medium">FACE REGISTRATION IMAGE *</label>
+                        <input class="form-control form-glass text-light" type="file" id="add-image" name="face_image" accept="image/*" required>
+                        <small class="text-muted">Must be a clear headshot photograph (JPG/PNG). Face will be encoded automatically.</small>
+                    </div>
+                </div>
+                <div class="modal-footer border-top border-secondary px-4 py-3">
+                    <button type="button" class="btn btn-glass-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-glass-primary">Register & Encode</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

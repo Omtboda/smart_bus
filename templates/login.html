@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Login - Smart Bus System{% endblock %}
+
+{% block content %}
+<div class="row min-vh-75 align-items-center justify-content-center" style="margin-top: 10vh;">
+    <div class="col-11 col-sm-8 col-md-6 col-lg-4">
+        <div class="glass-card shadow-lg text-center p-5">
+            <!-- App Logo Icon -->
+            <div class="mb-4 d-inline-flex align-items-center justify-content-center" style="width: 70px; height: 70px; background: rgba(94, 92, 230, 0.15); border-radius: 50%; border: 1.5px solid var(--primary); font-size: 32px; box-shadow: 0 0 20px var(--primary-glow);">
+                🚌
+            </div>
+            
+            <h1 class="h3 mb-1 text-light" style="font-family: 'Outfit'; font-weight: 700; letter-spacing: 0.5px;">SYSTEM LOGIN</h1>
+            <p class="text-muted mb-4" style="font-size: 0.9rem;">Smart Bus Access & Fee Verification</p>
+            
+            <form action="{{ url_for('login') }}" method="POST" id="form-login">
+                <div class="mb-3 text-start">
+                    <label for="username" class="form-label text-muted small fw-medium">ADMIN USERNAME</label>
+                    <input type="text" class="form-control form-glass text-light" id="username" name="username" placeholder="Enter username" required autocomplete="username">
+                </div>
+                <div class="mb-4 text-start">
+                    <label for="password" class="form-label text-muted small fw-medium">PASSWORD</label>
+                    <input type="password" class="form-control form-glass text-light" id="password" name="password" placeholder="Enter password" required autocomplete="current-password">
+                </div>
+                <button type="submit" class="btn btn-glass-primary w-100 py-2.5" id="btn-login-submit">Authenticate</button>
+            </form>
+            
+            <div class="mt-4 pt-3 border-top border-secondary">
+                <p class="text-muted small mb-0">Default credentials: <code class="text-light">admin</code> / <code class="text-light">admin123</code></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

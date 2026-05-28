@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard - Smart Bus System{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="h2 text-light" style="font-family: 'Outfit'; font-weight: 700; margin-bottom: 5px;">ADMIN PANEL</h1>
+        <p class="text-muted mb-0">Overview of campus bus access status and live verification metrics.</p>
+    </div>
+</div>
+
+<!-- KPI Metric Cards Row -->
+<div class="row g-4 mb-5" id="dashboard-metrics-container">
+    <!-- Card 1: Total Students -->
+    <div class="col-6 col-lg-3">
+        <div class="glass-card metric-card-primary h-100 d-flex flex-column justify-content-between">
+            <div>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-muted small fw-medium">TOTAL STUDENTS</span>
+                    <span style="font-size: 20px;">🎓</span>
+                </div>
+                <div class="metric-val" id="metric-total-students">{{ total_students }}</div>
+            </div>
+            <a href="{{ url_for('students') }}" class="text-decoration-none small mt-3 text-light-indigo" style="font-size: 0.85rem; color: #a4a2ff;">Manage Records →</a>
+        </div>
+    </div>
+    
+    <!-- Card 2: Entries Today -->
+    <div class="col-6 col-lg-3">
+        <div class="glass-card metric-card-success h-100 d-flex flex-column justify-content-between">
+            <div>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-muted small fw-medium">ENTRIES TODAY</span>
+                    <span style="font-size: 20px;">✅</span>
+                </div>
+                <div class="metric-val" id="metric-today-entries">{{ today_entries }}</div>
+            </div>
+            <a href="{{ url_for('attendance') }}" class="text-decoration-none small mt-3 text-light-green" style="font-size: 0.85rem; color: #87fca2;">View Logs →</a>
+        </div>
+    </div>
+    
+    <!-- Card 3: Pending Fees -->
+    <div class="col-6 col-lg-3">
+        <div class="glass-card metric-card-danger h-100 d-flex flex-column justify-content-between">
+            <div>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-muted small fw-medium">PENDING FEES</span>
+                    <span style="font-size: 20px;">💳</span>
+                </div>
+                <div class="metric-val" id="metric-pending-fees">{{ pending_fee_count }}</div>
+            </div>
+            <a href="{{ url_for('students') }}" class="text-decoration-none small mt-3 text-light-red" style="font-size: 0.85rem; color: #ff8e87;">Check Status →</a>
+        </div>
+    </div>
+    
+    <!-- Card 4: Total Alerts -->
+    <div class="col-6 col-lg-3">
+        <div class="glass-card metric-card-danger h-100 d-flex flex-column justify-content-between">
+            <div>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-muted small fw-medium">ACTIVE ALERTS</span>
+                    <span style="font-size: 20px;">⚠️</span>
+                </div>
+                <div class="metric-val" id="metric-total-alerts">{{ total_alerts_count }}</div>
+            </div>
+            <a href="{{ url_for('alerts') }}" class="text-decoration-none small mt-3 text-light-yellow" style="font-size: 0.85rem; color: #ffd60a;">Investigate Alerts →</a>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Left Column: Recent Entries Log -->
+    <div class="col-12 col-xl-8">
+        <div class="glass-card h-100">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="h5 text-light mb-1" style="font-family: 'Outfit';">Recent Activity Logs</h2>
+                    <p class="text-muted small mb-0">Chronological list of recent boarding verification matches.</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('live') }}" class="btn btn-sm btn-glass-primary px-3" id="btn-dashboard-live">Monitor Live</a>
+                </div>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="table table-glass">
+                    <thead>
+                        <tr>
+                            <th>Student ID</th>
+                            <th>Name</th>
+                            <th>Department</th>
+                            <th>Entry Time</th>
+                            <th>Access Verdict</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if recent_logs %}
+                            {% for log, student in recent_logs %}
+                            <tr>
+                                <td class="fw-semibold text-light">{{ log.student_id or 'UNKNOWN' }}</td>
+                                <td>{{ student.name if student else 'Unknown Person' }}</td>
+                                <td>{{ student.department if student else '-' }}</td>
+                                <td class="text-muted">{{ log.formatted_time }}</td>
+                                <td>
+                                    <span class="status-pill {% if log.status == 'Allowed' %}status-allowed{% else %}status-denied{% endif %}">
+                                        {% if log.status == 'Allowed' %}Allowed{% else %}Denied{% endif %}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-4">No records found. Initialize live stream to verify students.</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Recent Alerts -->
+    <div class="col-12 col-xl-4">
+        <div class="glass-card h-100 d-flex flex-column">
+            <h2 class="h5 text-light mb-1" style="font-family: 'Outfit';">Security Alerts</h2>
+            <p class="text-muted small mb-4">Latest unauthorized entry attempts or pending fee blocks.</p>
+            
+            <ul class="list-group list-group-flush bg-transparent overflow-auto flex-grow-1" style="max-height: 380px;" id="recent-alerts-list">
+                {% if recent_alerts %}
+                    {% for alert in recent_alerts %}
+                    <li class="list-group-item bg-transparent border-bottom border-secondary ps-0 pe-0 text-light py-3 d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="badge {% if 'Unauthorized' in alert.alert_message %}bg-danger{% else %}bg-warning text-dark{% endif %} me-2">
+                                {% if 'Unauthorized' in alert.alert_message %}ALERT{% else %}WARNING{% endif %}
+                            </span>
+                            <span>{{ alert.alert_message }}</span>
+                        </div>
+                        <small class="text-muted">{{ alert.short_time }}</small>
+                    </li>
+                    {% endfor %}
+                {% else %}
+                    <li class="list-group-item bg-transparent text-muted border-0 ps-0">No recent alerts registered.</li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
